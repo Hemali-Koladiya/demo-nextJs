@@ -9,9 +9,9 @@ export default function Navbar() {
         <Link href="/" className="lg:w-44 w-36">
            <h1 className="text-4xl font-semibold">Demo</h1>
         </Link>
-        <Link href="/admin" className="text-white">
+        {/* <Link href="/admin" className="text-white">
           Admin
-        </Link>
+        </Link> */}
       </div>
     </nav>
   );
