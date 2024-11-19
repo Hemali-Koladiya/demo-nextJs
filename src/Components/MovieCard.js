@@ -11,7 +11,7 @@ export default function MovieCard({ movie }) {
     setTimeout(() => {
       setIsZoomed(false);
       // router.push(movie.link);
-      // window.open(movie.link, "_blank", "noopener,noreferrer");
+      window.open(movie.link, "_blank", "noopener,noreferrer");
     }, 1000);
   };
 
