@@ -30,11 +30,11 @@ export default function Home() {
         movieQuery,
         where("title", ">=", searchTerm),
         where("title", "<=", searchTerm + "\uf8ff"),
-        limit(12)
+        limit(13)
       );
     } else {
       // If no search term, simply fetch 12 movies at a time
-      movieQuery = query(movieQuery, limit(12));
+      movieQuery = query(movieQuery, limit(13));
       if (lastVisible) {
         movieQuery = query(movieQuery, startAfter(lastVisible));
       }
