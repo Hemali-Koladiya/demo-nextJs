@@ -21,12 +21,12 @@ export default function Navbar({ onSearch }) {
           value={searchTerm}
           onChange={handleSearchChange}
           placeholder="Search movies..."
-          className="search-input !text-black "
+          className="search-input !text-black px-2 py-0.5"
         />
         {/* <Link href="/admin" className="text-white">
           Admin
         </Link> */}
       </div>
     </nav>
-  );
+  )
 }
