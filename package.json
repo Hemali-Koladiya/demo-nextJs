@@ -23,6 +23,7 @@
     "firebase": "^11.0.2",
     "firebase-admin": "^12.7.0",
     "firebase-functions": "^6.1.0",
-    "lucide-react": "^0.456.0"
+    "lucide-react": "^0.456.0",
+    "react-loader-spinner": "^6.1.6"
   }
 }

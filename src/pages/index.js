@@ -6,10 +6,12 @@ import {
   limit,
   startAfter,
   where,
+  orderBy
 } from "firebase/firestore";
 import { db } from "../firebase";
 import Navbar from "../Components/Navbar";
 import MovieCard from "../Components/MovieCard";
+import { Oval } from "react-loader-spinner";
 
 export default function Home() {
   const [movies, setMovies] = useState([]);
@@ -22,41 +24,70 @@ export default function Home() {
   // Function to fetch movies with infinite scroll
   const fetchMovies = async (searchTerm = "") => {
     setLoading(true);
-    let movieQuery = collection(db, "movies");
-
-    // Add search filter if there's a search term
+    let movieQuery;
+  
     if (searchTerm) {
+      // Normalize the search term
+      const normalizedSearchTerm = searchTerm.toLowerCase();
+  
+      // Order by title to fetch and filter client-side
       movieQuery = query(
-        movieQuery,
-        where("title", ">=", searchTerm),
-        where("title", "<=", searchTerm + "\uf8ff"),
+        collection(db, "movies"),
+        orderBy("title"),
+      );
+  
+      const querySnapshot = await getDocs(movieQuery);
+  
+      // Filter client-side based on the normalized search term
+      const movieList = querySnapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+        .filter((movie) =>
+          movie.title.toLowerCase().includes(normalizedSearchTerm)
+        );
+  
+      setMovies(movieList); // Update movies with filtered results
+      setLastVisible(null); // Reset pagination as this is filtered data
+      setHasMore(movieList.length > 0);
+    } else {
+      // For normal pagination when no search term is provided
+      movieQuery = query(
+        collection(db, "movies"),
+        orderBy("created_date", "desc"),
         limit(13)
       );
-    } else {
-      // If no search term, simply fetch 12 movies at a time
-      movieQuery = query(movieQuery, limit(13));
+  
+      // If there is a lastVisible document, add startAfter for pagination
       if (lastVisible) {
-        movieQuery = query(movieQuery, startAfter(lastVisible));
+        movieQuery = query(
+          collection(db, "movies"),
+          orderBy("created_date", "desc"),
+          startAfter(lastVisible),
+          limit(13)
+        );
       }
+  
+      const querySnapshot = await getDocs(movieQuery);
+  
+      const movieList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+  
+      setMovies((prevMovies) => {
+        const newMovies = [...prevMovies, ...movieList];
+        const uniqueMovies = [
+          ...new Map(newMovies.map((movie) => [movie.id, movie])).values(),
+        ]; // Remove duplicates based on movie.id
+        return uniqueMovies;
+      });
+  
+      setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+      setHasMore(querySnapshot.docs.length > 0);
     }
-
-    const querySnapshot = await getDocs(movieQuery);
-    const movieList = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    // Ensure we're not adding duplicate movies
-    setMovies((prevMovies) => {
-      const newMovies = [...prevMovies, ...movieList];
-      const uniqueMovies = [
-        ...new Map(newMovies.map((movie) => [movie.id, movie])).values(),
-      ]; // Remove duplicates based on movie.id
-      return uniqueMovies;
-    });
-
-    setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]); // Update last visible document for pagination
-    setHasMore(querySnapshot.docs.length > 0); // Check if there are more movies to fetch
+  
     setLoading(false);
   };
 
@@ -66,6 +97,8 @@ export default function Home() {
 
   // Handle scroll event for infinite scrolling
   const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+
     const bottom =
       scrollContainerRef.current.scrollHeight ===
       scrollContainerRef.current.scrollTop +
@@ -81,6 +114,7 @@ export default function Home() {
     setMovies([]); // Clear current movies list on new search
     setLastVisible(null); // Reset pagination on new search
     fetchMovies(value); // Fetch movies based on the search term
+    setHasMore(true);
   };
 
   return (
@@ -99,7 +133,7 @@ export default function Home() {
         </div>
 
         {/* Show skeleton loader while fetching */}
-        {loading && (
+        {/* {loading && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-5">
             {[1, 2, 3, 4, 5, 6].map((value) => (
               <div key={value} className="w-full bg-white rounded-lg p-4">
@@ -114,6 +148,21 @@ export default function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        )} */}
+
+        {loading && (
+          <div className="flex justify-center">
+            <Oval
+              height={50}
+              width={50}
+              color="#ffffff"
+              visible={true}
+              ariaLabel="loading"
+              secondaryColor="#4b5563"
+              strokeWidth={2}
+              strokeWidthSecondary={2}
+            />
           </div>
         )}
 
