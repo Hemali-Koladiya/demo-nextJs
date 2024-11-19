@@ -19,7 +19,9 @@ export default function MovieCard({ movie }) {
     <div className={"relative"}>
       <div
         className={`transform transition-transform duration-500 cursor-pointer ${
-          isZoomed ? "md:scale-[1.8] scale-[1.7] z-20 fixed top-[40%] lg:left-[40%] md:left-[38%] left-[30%]" : "scale-100 z-10 hover:scale-105 relative"
+          isZoomed
+            ? "md:scale-[1.8] scale-[1.7] z-20 fixed top-[40%] lg:left-[40%] md:left-[38%] left-[30%]"
+            : "scale-100 z-10 hover:scale-105 relative"
         }`}
         // style={{
         //   position: isZoomed ? "" : "",
