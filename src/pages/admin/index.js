@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase";
 import Link from "next/link";
 import Navbar from "../../Components/Navbar";
@@ -13,12 +13,20 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "movies"));
+        // Create a query with orderBy
+        const moviesQuery = query(
+          collection(db, "movies"),
+          orderBy("created_date", "desc")
+        );
+        
+        const querySnapshot = await getDocs(moviesQuery);
+        
+        // Map documents without position
         const movieList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        movieList.sort((a, b) => a.position - b.position);
+        
         setMovies(movieList);
       } catch (error) {
         console.error("Error fetching movies:", error);
@@ -61,7 +69,7 @@ export default function AdminDashboard() {
                 <tr className="border-b">
                   <th className="px-4 py-2 text-left border-r">Image</th>
                   <th className="px-4 py-2 text-left border-r">Title</th>
-                  <th className="px-4 py-2 text-left border-r">Position</th>
+                  <th className="px-4 py-2 text-left border-r">Date</th>
                   <th className="px-4 py-2 text-left border-r">Link</th>
                   <th className="px-4 py-2 text-left border-r">Edit</th>
                   <th className="px-4 py-2 text-left">Delete</th>
@@ -78,7 +86,9 @@ export default function AdminDashboard() {
                       />
                     </td>
                     <td className="px-4 py-2 border-r">{movie.title}</td>
-                    <td className="px-4 py-2 border-r">{movie.position}</td>
+                    <td className="px-4 py-2 border-r">
+                      {movie.created_date?.toDate().toLocaleDateString()}
+                    </td>
                     <td className="px-4 py-2 border-r ">{movie.link}</td>
                     <td className="px-4 py-2 border-r ">
                       <button

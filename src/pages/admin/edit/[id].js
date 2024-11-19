@@ -3,17 +3,16 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../../firebase";
 import { useRouter } from "next/router";
 import Navbar from "../../../Components/Navbar";
-import { adjustPositions } from "../../../utils/positionManager";
 import AdminLayout from "../AdminLayout";
 
 export default function EditMovie() {
   const [title, setTitle] = useState("");
   const [link, setLink] = useState("");
-  const [position, setPosition] = useState("");
   const [imageBase64, setImageBase64] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [imageSize, setImageSize] = useState(0);
+  const [createdDate, setCreatedDate] = useState(null);
   const router = useRouter();
   const { id } = router.query;
 
@@ -29,9 +28,9 @@ export default function EditMovie() {
           const movieData = movieDoc.data();
           setTitle(movieData.title);
           setLink(movieData.link);
-          setPosition(movieData.position);
           setImageBase64(movieData.imageUrl);
           setPreviewUrl(movieData.imageUrl);
+          setCreatedDate(movieData.created_date); // Store the original creation date
         }
         setLoading(false);
       } catch (error) {
@@ -90,7 +89,7 @@ export default function EditMovie() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!imageBase64 || !title || !link || !position) {
+    if (!imageBase64 || !title || !link) {
       alert("Please fill all fields");
       return;
     }
@@ -103,22 +102,13 @@ export default function EditMovie() {
     try {
       setLoading(true);
 
-      // Get current movie data to check if position changed
-      const movieDoc = await getDoc(doc(db, "movies", id));
-      const currentData = movieDoc.data();
-
-      if (currentData.position !== Number(position)) {
-        // Only adjust positions if the position has changed
-        await adjustPositions(Number(position), id);
-      }
-
-      // Update the movie
+      // Update the movie while preserving the original created_date
       const movieRef = doc(db, "movies", id);
       await updateDoc(movieRef, {
         title,
         link,
-        position: Number(position),
         imageUrl: imageBase64,
+        created_date: createdDate // Preserve the original creation date
       });
 
       router.push("/admin");
@@ -132,12 +122,11 @@ export default function EditMovie() {
 
   if (loading) {
     return (
-      <div>
-        <Navbar />
+      <AdminLayout>
         <div className="container mx-auto px-4 py-8">
           <p>Loading...</p>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
@@ -145,7 +134,7 @@ export default function EditMovie() {
     <AdminLayout>
       <div>
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold mb-6">Edit Movie</h1>
+          <h1 className="text-2xl font-bold mb-6">Edit</h1>
           <form onSubmit={handleSubmit} className="max-w-lg">
             <div className="mb-4">
               <label className="block mb-2">Title</label>
@@ -170,18 +159,7 @@ export default function EditMovie() {
               />
             </div>
             <div className="mb-4">
-              <label className="block mb-2">Position</label>
-              <input
-                type="number"
-                value={position}
-                onChange={(e) => setPosition(e.target.value)}
-                className="w-full p-2 border rounded"
-                placeholder="Enter position number (1, 2, 3...)"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-2">Movie Image (Max size: 900KB)</label>
+              <label className="block mb-2">Image (Max size: 900KB)</label>
               <input
                 type="file"
                 onChange={handleImageChange}
@@ -198,9 +176,6 @@ export default function EditMovie() {
                   )}
                 </div>
               )}
-              <p className="text-sm text-gray-500 mt-1">
-                {/* Please use compressed/optimized images to stay within size limits */}
-              </p>
               {previewUrl && (
                 <div className="mt-2">
                   <p className="mb-2 text-sm text-gray-600">Current Image:</p>

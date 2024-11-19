@@ -11,7 +11,7 @@ export default function MovieCard({ movie }) {
     setTimeout(() => {
       setIsZoomed(false);
       // router.push(movie.link);
-      window.open(movie.link, "_blank", "noopener,noreferrer");
+      // window.open(movie.link, "_blank", "noopener,noreferrer");
     }, 1000);
   };
 
@@ -20,7 +20,7 @@ export default function MovieCard({ movie }) {
       <div
         className={`transform transition-transform duration-500 cursor-pointer ${
           isZoomed
-            ? "md:scale-[1.8] scale-[1.7] z-20 fixed top-[40%] lg:left-[40%] md:left-[38%] left-[30%]"
+            ? "md:scale-[1.8] scale-[1.7] z-20 fixed lg:top-[35%] top-[40%] lg:left-[40%] md:left-[38%] left-[28%] md:w-52 md:h-52 w-40 h-40"
             : "scale-100 z-10 hover:scale-105 relative"
         }`}
         // style={{

@@ -1,15 +1,13 @@
 import { useState } from "react";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../firebase";
 import { useRouter } from "next/router";
 import Navbar from "../../Components/Navbar";
-import { adjustPositions } from "../../utils/positionManager";
 import AdminLayout from "./AdminLayout";
 
 export default function AddMovie() {
   const [title, setTitle] = useState("");
   const [link, setLink] = useState("");
-  const [position, setPosition] = useState("");
   const [imageBase64, setImageBase64] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,7 +34,7 @@ export default function AddMovie() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!imageBase64 || !title || !link || !position) {
+    if (!imageBase64 || !title || !link) {
       alert("Please fill all fields");
       return;
     }
@@ -53,15 +51,13 @@ export default function AddMovie() {
 
     try {
       setLoading(true);
-      // Adjust positions
-      await adjustPositions(Number(position));
 
-      // Add the new movie with base64 image
+      // Add the new movie with base64 image and created_date
       await addDoc(collection(db, "movies"), {
         title,
         link,
-        position: Number(position),
         imageUrl: imageBase64, // Store base64 string directly
+        created_date: serverTimestamp(), // Add timestamp
       });
 
       router.push("/admin");
@@ -77,7 +73,7 @@ export default function AddMovie() {
     <AdminLayout>
       <div>
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold mb-6">Add New </h1>
+          <h1 className="text-2xl font-bold mb-6">Add New</h1>
           <form onSubmit={handleSubmit} className="max-w-lg">
             <div className="mb-4">
               <label className="block mb-2">Title</label>
@@ -100,22 +96,6 @@ export default function AddMovie() {
                 placeholder="Enter movie link"
                 required
               />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-2">Position</label>
-              <input
-                type="number"
-                value={position}
-                onChange={(e) => setPosition(e.target.value)}
-                className="w-full p-2 border rounded"
-                placeholder="Enter position number (1, 2, 3...)"
-                required
-                min="1"
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                If this position is already taken, existing cards will
-                automatically shift forward
-              </p>
             </div>
             <div className="mb-4">
               <label className="block mb-2">
@@ -148,7 +128,7 @@ export default function AddMovie() {
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
               disabled={loading}
             >
-              {loading ? "Adding..." : "Add"}
+              {loading ? "Adding..." : "Add Movie"}
             </button>
           </form>
         </div>
